@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
     return ScreenUtilInit(
       builder: (context, child) {
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           // The Mandy red, light theme.
           theme: FlexThemeData.light(scheme: FlexScheme.mandyRed),
           // The Mandy red, dark theme.

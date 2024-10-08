@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:hscanner/models/qr_box.dart';
 import 'package:hscanner/scan/camera_scan_qr_code/widgets/qr_scanner_overlay_shape.dart';
 import 'package:hscanner/scan/camera_scan_qr_code/widgets/scanner_button_widgets.dart';
+import 'package:hscanner/scan/camera_scan_qr_code/widgets/zoom_scale_slider.dart';
 import 'package:hscanner/utils/app_shared_preferences.dart';
 import 'package:hscanner/utils/mobile_scanner_state_extensions.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -23,6 +24,7 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
   MobileScannerController controller = MobileScannerController(
     autoStart: false,
     torchEnabled: false,
+    useNewCameraSelector: true,
   );
 
   StreamSubscription<Object?>? _subscription;
@@ -31,6 +33,7 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
 
   void _handleBarcode(BarcodeCapture barcodes) {
     final String? displayValue = barcodes.barcodes.firstOrNull?.displayValue;
+    
     if (displayValue == null || displayValue == _scanDataCode || _isShowPopup) {
       return;
     }
@@ -86,8 +89,8 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
   Widget build(BuildContext context) {
     final scanWindow = Rect.fromCenter(
       center: MediaQuery.sizeOf(context).center(Offset.zero),
-      width: 300,
-      height: 300,
+      width: 200,
+      height: 200,
     );
     return VisibilityDetector(
       key: const Key('QrCodeScannerWithController'),
@@ -130,8 +133,6 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
             const Align(
                 alignment: Alignment.topCenter,
                 child: SafeArea(
-                  //   child:
-                  // TextButton(onPressed: (){}, child: const Text('Mã QR của tôi')),
                   child: MyQrCode(),
                 )),
             Align(
@@ -142,7 +143,6 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
                   height: 100,
                   padding: const EdgeInsets.all(15),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       AnalyzeImageFromGalleryButton(
                         controller: controller,
@@ -151,6 +151,7 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
                           _handleBarcode(barcodes);
                         },
                       ),
+                      Expanded(child: ZoomScaleSlider(controller: controller)),
                       const HistoryButton(),
                     ],
                   ),
