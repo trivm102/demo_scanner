@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hscanner/models/qr_box.dart';
@@ -25,6 +24,7 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
     autoStart: false,
     torchEnabled: false,
     useNewCameraSelector: true,
+    detectionTimeoutMs: 150,
   );
 
   StreamSubscription<Object?>? _subscription;
@@ -33,7 +33,7 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
 
   void _handleBarcode(BarcodeCapture barcodes) {
     final String? displayValue = barcodes.barcodes.firstOrNull?.displayValue;
-    
+
     if (displayValue == null || displayValue == _scanDataCode || _isShowPopup) {
       return;
     }
@@ -130,11 +130,25 @@ class _QrCodeScannerWithControllerState extends State<QrCodeScannerWithControlle
               },
             ),
             _buildScanWindow(scanWindow),
+            Align(
+              alignment: Alignment.topCenter,
+              child: SafeArea(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: const Image(
+                    image: AssetImage('assets/launcher/icon.png'),
+                    width: 50,
+                    height: 50,
+                  ),
+                ),
+              ),
+            ),
             const Align(
-                alignment: Alignment.topCenter,
-                child: SafeArea(
-                  child: MyQrCode(),
-                )),
+              alignment: Alignment.topRight,
+              child: SafeArea(
+                child: MyQrCode(),
+              ),
+            ),
             Align(
               alignment: Alignment.bottomCenter,
               child: SafeArea(

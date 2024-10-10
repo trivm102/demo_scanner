@@ -1,5 +1,7 @@
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hscanner/models/qr_box.dart';
 import 'package:hscanner/qr_card/qr_code_history_page.dart';
 import 'package:hscanner/qr_card/qr_code_page.dart';
@@ -10,7 +12,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AnalyzeImageFromGalleryButton extends StatelessWidget {
   const AnalyzeImageFromGalleryButton({required this.controller, this.callback, super.key});
@@ -194,7 +195,6 @@ class __ContentSaveQRState extends State<_ContentSaveQR> {
 void codePreview(BuildContext context, String code,
     {CodePreviewType type = CodePreviewType.scan, Function()? close}) async {
   final Uri? uri = Uri.tryParse(code);
-  final canLaunch = uri != null ? await canLaunchUrl(uri) : false;
   bool hasInternetAccess = await InternetConnection().hasInternetAccess;
   final bool cccdIsValid = code.cccdIsValid();
   final bool isShowPreviewLink = AnyLinkPreview.isValidLink(code, requireProtocol: true) && hasInternetAccess;
@@ -202,7 +202,7 @@ void codePreview(BuildContext context, String code,
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (BuildContext context) {
+    builder: (BuildContext modalContext) {
       return Container(
         decoration: const BoxDecoration(
             color: Colors.white,
@@ -222,9 +222,11 @@ void codePreview(BuildContext context, String code,
               children: [
                 const SizedBox(width: 12),
                 if (!cccdIsValid && !cccdIsValid && !isShowPreviewLink) ...{
-                  Text(
-                    code,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontStyle: FontStyle.italic),
+                  Expanded(
+                    child: Text(
+                      code,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontStyle: FontStyle.italic),
+                    ),
                   ),
                 },
                 const SizedBox(height: 20),
@@ -233,23 +235,11 @@ void codePreview(BuildContext context, String code,
                 },
                 if (cccdIsValid) ...{
                   Expanded(child: PreviewCCCD(cccd: code)),
-                  
-                },
-                if (canLaunch) ...{
-                  IconButton(
-                    onPressed: () async {
-                      final Uri url = Uri.parse(code);
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: const Icon(Icons.open_in_new),
-                  )
                 },
                 const SizedBox(width: 12),
               ],
             ),
-            const SizedBox(height: 20),
+            Divider(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -273,7 +263,10 @@ void codePreview(BuildContext context, String code,
                   ),
                 ),
                 const SizedBox(width: 10),
+                CopyButton(qr: code),
+                const SizedBox(width: 10),
                 if (type == CodePreviewType.scan) SaveButton(qr: code),
+                const SizedBox(width: 10),
               ],
             ),
             const SafeArea(child: SizedBox(height: 20)),
@@ -301,6 +294,7 @@ class MyQrCode extends StatelessWidget {
           borderRadius: BorderRadius.circular(100),
           color: Colors.black.withAlpha(100),
         ),
+        margin: const EdgeInsets.only(right: 10),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         height: 50,
         child: Row(
@@ -315,6 +309,42 @@ class MyQrCode extends StatelessWidget {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class CopyButton extends StatelessWidget {
+  const CopyButton({super.key, required this.qr});
+  final String qr;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool cccdIsValid = qr.cccdIsValid();
+    return FilledButton(
+      onPressed: () async {
+        String textToCopy = qr;
+        if (cccdIsValid) {
+          textToCopy = qr.parseDataCCCD().toString();
+        }
+        await Clipboard.setData(ClipboardData(text: textToCopy));
+        Fluttertoast.showToast(
+            msg: 'Đã sao chép',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+      child: Icon(
+        Icons.copy,
+        color: Colors.black,
+      ),
+      style: ButtonStyle(
+        shape: WidgetStateProperty.all(CircleBorder()),
+        padding: WidgetStateProperty.all(EdgeInsets.all(12)),
+        backgroundColor: WidgetStateProperty.all(Colors.grey.shade200), // <-- Button color
       ),
     );
   }

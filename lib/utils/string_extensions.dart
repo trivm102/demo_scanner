@@ -7,10 +7,10 @@ extension StringX on String? {
       return false;
     }
     final arrayString = this?.split('|');
-    if (arrayString?.length == 7) {
-      return true;
+    if(arrayString == null) {
+      return false;
     }
-    return false;
+    return arrayString.length >= 7;
   }
 
   CCCDModel? parseDataCCCD() {
@@ -18,14 +18,17 @@ extension StringX on String? {
       return null;
     }
     final arrayString = this?.split('|');
-    if (arrayString?.length == 7) {
-      final idCCCD = arrayString?.elementAt(0);
-      final idCMND = arrayString?.elementAt(1);
-      final fullName = arrayString?.elementAt(2);
-      final dob = _convertDate(arrayString?.elementAt(3));
-      final gender = arrayString?.elementAt(4);
-      final address = arrayString?.elementAt(5);
-      final issueDate = _convertDate(arrayString?.elementAt(6));
+    if(arrayString == null) {
+      return null;
+    }
+    if (arrayString.length >= 7) {
+      final idCCCD = arrayString.elementAt(0);
+      final idCMND = arrayString.elementAt(1);
+      final fullName = arrayString.elementAt(2);
+      final dob = _convertDate(arrayString.elementAt(3));
+      final gender = arrayString.elementAt(4);
+      final address = arrayString.elementAt(5);
+      final issueDate = _convertDate(arrayString.elementAt(6));
       return CCCDModel(
         fullName: fullName,
         address: address,
